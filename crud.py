@@ -1,3 +1,5 @@
+import datetime
+
 from sqlalchemy.orm import Session
 
 import models
@@ -45,7 +47,7 @@ def delete_city(db: Session, city_id: int) -> bool:
 def create_temperature(
     db: Session,
     city_id: int,
-    date_time,
+    date_time: datetime.datetime,
     temperature: float,
 ) -> models.Temperature:
     db_temp = models.Temperature(

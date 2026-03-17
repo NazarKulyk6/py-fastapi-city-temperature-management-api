@@ -1,6 +1,8 @@
 import datetime
 
 from fastapi import Depends, FastAPI, HTTPException
+import httpx
+from starlette.concurrency import run_in_threadpool
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
@@ -73,12 +75,22 @@ async def update_temperatures(db: Session = Depends(get_db)):
     for city in cities:
         try:
             temp = await fetch_current_temperature(city.name)
-            crud.create_temperature(
-                db=db, city_id=city.id, date_time=now, temperature=temp
+            await run_in_threadpool(
+                crud.create_temperature,
+                db,
+                city.id,
+                now,
+                temp,
             )
             created += 1
-        except Exception as exc:
-            failed.append({"city_id": city.id, "city_name": city.name, "error": str(exc)})
+        except (httpx.HTTPError, ValueError) as exc:
+            failed.append(
+                {
+                    "city_id": city.id,
+                    "city_name": city.name,
+                    "error": str(exc),
+                }
+            )
 
     return {"created": created, "failed": failed}
 

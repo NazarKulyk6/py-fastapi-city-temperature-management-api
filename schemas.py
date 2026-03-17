@@ -20,8 +20,7 @@ class CityUpdate(BaseModel):
 class City(CityBase):
     id: int
 
-    class Config:
-        from_attributes = True
+    model_config = {"from_attributes": True}
 
 
 class TemperatureBase(BaseModel):
@@ -33,6 +32,5 @@ class TemperatureBase(BaseModel):
 class Temperature(TemperatureBase):
     id: int
 
-    class Config:
-        from_attributes = True
+    model_config = {"from_attributes": True}
 

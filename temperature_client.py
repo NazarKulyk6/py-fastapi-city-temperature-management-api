@@ -6,7 +6,9 @@ async def fetch_current_temperature(city_name: str) -> float:
     Fetch current temperature for a city.
 
     Uses Open-Meteo geocoding + forecast API (no key required).
-    If the city can't be resolved, raises ValueError.
+    If the city can't be resolved or response is incomplete, raises ValueError.
+
+    httpx exceptions (network/HTTP errors) may propagate.
     """
     async with httpx.AsyncClient(timeout=10) as client:
         geo = await client.get(
@@ -18,8 +20,10 @@ async def fetch_current_temperature(city_name: str) -> float:
         results = geo_data.get("results") or []
         if not results:
             raise ValueError(f"Unknown city: {city_name}")
-        lat = results[0]["latitude"]
-        lon = results[0]["longitude"]
+        lat = results[0].get("latitude")
+        lon = results[0].get("longitude")
+        if lat is None or lon is None:
+            raise ValueError(f"City coordinates missing: {city_name}")
 
         forecast = await client.get(
             "https://api.open-meteo.com/v1/forecast",
